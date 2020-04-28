@@ -56,6 +56,7 @@ C The statements begining with !*! are refer to APSIM source codes
       USE ModuleDefs
       USE WH_module
       USE Interface_SenLig_Ceres
+      USE WatLog  ! VSHs
       IMPLICIT  NONE
       SAVE
 !----------------------------------------------------------------------
@@ -1874,6 +1875,27 @@ cnh Senthold
      &    p3af, p4af, p5af, p6af, rtdep_nw,                      !Input
      &    satdep, swdep, xstag_nw, p_fdsw, p_adf, p_afs, p_stage, !Input
      &    nlayr_nw, adf, afs)                                    !Output
+      
+      ! VSH WatLog
+      OUTWL  = 'WatLog.OUT'       
+      CALL GETLUN('OUTWL',  NOUTWL)                                       
+      INQUIRE (FILE = OUTWL, EXIST = FEXIST)
+      IF (FEXIST) THEN
+        OPEN (UNIT = NOUTWL, FILE = OUTWL, STATUS = 'OLD',
+     &    IOSTAT = ERRNUM, POSITION = 'APPEND')
+      ELSE
+        OPEN (UNIT = NOUTWL, FILE = OUTWL, STATUS = 'NEW',
+     &    IOSTAT = ERRNUM)
+        WRITE(NOUTWL,'("*SOIL WATER LOG DAILY OUTPUT FILE")')
+      ENDIF
+      
+!      WRITE (NOUTWL,130) YEAR,DOY,
+      WRITE (NOUTWL,130) YRDOY,
+!     &      (ADF(L),L=1,NLAYR)
+     &      (fdsw_test(L),L=1,NLAYR), WTDEP
+!  130 FORMAT(1X,I4,1X,I3.3,1X,
+  130 FORMAT(1X, I7, 1X, 10(F8.3), F8.1) 
+      
        ! JZW: Add nlayr_nw declaration and here
       CALL nwheats_rtdp(CONTROL, SOILPROP,
      &  ADPHO, dlayr_nw, dtt, duldep, g_water_table, istage,      !Input
