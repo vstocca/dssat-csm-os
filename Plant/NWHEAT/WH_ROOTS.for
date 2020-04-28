@@ -19,6 +19,7 @@ C=======================================================================
 !     ------------------------------------------------------------------
       USE ModuleDefs
       USE WH_module    
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
   
@@ -162,7 +163,9 @@ C=======================================================================
       do L = 1, nlayr_nw
          ! calculate fraction of drainable soil water
 !*!      fdsw = divide(swdep(L)-duldep(L),satdep(L)-duldep(L),0.0)
-         if((satdep(L)-duldep(L)) .GT. 0.0) then
+!        VSH
+!         if((satdep(L)-duldep(L)) .GT. 0.0) then
+         if((swdep(L)-duldep(L)) .GT. 0.0) then
             fdsw = (swdep(L)-duldep(L)) / (satdep(L)-duldep(L))
          else
             fdsw = 0.0
@@ -170,6 +173,9 @@ C=======================================================================
 !*!      fdsw = bound (fdsw,0.0,1.0)
          fdsw = MAX (fdsw, 0.0)
          fdsw = MIN (fdsw, 1.0)
+         
+         ! VSH
+         fdsw_test(L) = fdsw
          ! TABEX(Y,X,Xo,n); linear_interp_real(Xo,X,Y)
          adf(L) = TABEX (p_adf, p_fdsw, fdsw ,3)
 !*!      adf(L) = linear_interp_real(fdsw,p_fdsw,p_adf,num_fdsw)
