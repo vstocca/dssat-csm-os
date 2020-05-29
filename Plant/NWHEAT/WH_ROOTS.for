@@ -274,6 +274,9 @@ C=======================================================================
 !     ------------------------------------------------------------------
       USE ModuleDefs    
       USE WH_module
+      
+      ! VSH
+      USE WatLog
       IMPLICIT NONE
       SAVE
   
@@ -354,6 +357,9 @@ C=======================================================================
 ! ---------------------------------------------------------------------
       IF (DYNAMIC.EQ.RUNINIT .OR. DYNAMIC.EQ.SEASINIT) THEN
 
+          ! VSH
+          WaterLoggingTime = 0
+          
 !       Do this just once in RUNINIT
         IF (DYNAMIC .EQ. RUNINIT) THEN
           CALL GETLUN('OUTO', NOUTDO)
@@ -428,34 +434,57 @@ C=======================================================================
             ! the top of the water table is above the lower
             ! boundary of this layer.
             ad_time(L) = ad_time(L) + 1
+            
+            ! VSH
+            g_nrlayr = L+1
+            Exit
          else
             ad_time(L) = 0
          endif
       enddo 
  
+      ! VSH
+      If (effective_water_table < rtdep_nw) then
+          WaterLoggingTime = WaterLoggingTime + 1
+      else
+          WaterLoggingTime = 0
+      End If
+      
+      if (WaterLoggingTime >= P4AF) then
+          kill_depth = effective_water_table
+          kill_depth = min(kill_depth, rtdep_nw)
+!          WaterLoggingTime = 0
+          grtdep_nw_before_kill = rtdep_nw
+      Else
+          kill_depth = 0.0
+      End If
+            
+         
       ! FIND THE DEPTH BELOW WHICH ANY ROOTS NEED TO BE KILLED
       ! ------------------------------------------------------
-      do L = 1, nrlayr
-         if (ad_time(L) .ge. P4AF) then
-            kill_depth = effective_water_table
-            kill_depth = min(kill_depth, rtdep_nw)
-            if (kill_depth.lt.rtdep_nw) then
-               goto 201
-            else
-               kill_depth = 0.0
-            endif
-         else
-            kill_depth = 0.0
-         endif
-      enddo
-      
-  201 continue
+      ! VSH   commented below
+  !    do L = 1, nrlayr
+  !       if (ad_time(L) .ge. P4AF) then
+  !          kill_depth = effective_water_table
+  !          kill_depth = min(kill_depth, rtdep_nw)
+  !          if (kill_depth.lt.rtdep_nw) then
+  !             goto 201
+  !          else
+  !             kill_depth = 0.0
+  !          endif
+  !       else
+  !          kill_depth = 0.0
+  !       endif
+  !    enddo
+  !    
+  !201 continue
  
       ! SEE IF WE NEED TO INCORPORATE ANY ROOT MATERIAL
       ! -----------------------------------------------
       if (kill_depth .gt. 0.0) then
  
-         write (string, '(a,f6.1,a,i3)')
+         !write (string, '(a,f6.1,a,i3)')  VSH
+         write (string, '(a,f6.1,a,i7)')
      &                  'Killing all roots below ',kill_depth,
 !*!  &                  ' mm due to water logging on day ',day_of_year
      &                  ' mm due to water logging on day ',YRDOY
