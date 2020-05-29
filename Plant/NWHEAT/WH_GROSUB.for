@@ -56,7 +56,7 @@ C The statements begining with !*! are refer to APSIM source codes
       USE ModuleDefs
       USE WH_module
       USE Interface_SenLig_Ceres
-      USE WatLog  ! VSHs
+      USE WatLog  ! VSH
       IMPLICIT  NONE
       SAVE
 !----------------------------------------------------------------------
@@ -613,6 +613,10 @@ C The statements begining with !*! are refer to APSIM source codes
       REAL        YIELDB      
       INTEGER     YR, YRDOY    
 
+      ! VSH
+!      Real WT_perched(NLAYR), WT_Thikness(NLAYR)
+      Real WT_perched
+      
 !     Added to send messages to WARNING.OUT
       CHARACTER*78 MESSAGE(10)
 
@@ -1831,6 +1835,15 @@ C         Calculate soil water table depth
           
           g_water_table = WTDEP *10    ! for APSIM Nwheat model
           
+          ! VSH
+          Call WTDEPT2(NLAYR, DLAYR, DS, DUL, SAT, SW,                  
+!     &         WT_perched, WT_Thikness)
+     &   WT_perched)
+          
+          g_water_table = WT_perched * 10
+          
+          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
+     &                                WT_perched]
 !======================================================================
           call nwheats_set_nconc (xstag_nw, istage,              !Input
      &      zstage, VSEN,                                        !Input
@@ -1892,9 +1905,13 @@ cnh Senthold
 !      WRITE (NOUTWL,130) YEAR,DOY,
       WRITE (NOUTWL,130) YRDOY,
 !     &      (ADF(L),L=1,NLAYR)
-     &      (fdsw_test(L),L=1,NLAYR), WTDEP
+     &      (fdsw_test(L),L=1,NLAYR), WTDEP, WT_perched
+!      (WT_perched(L),L=1,NLAYR),
+!     &      (WT_Thikness(L),L=1,NLAYR)
 !  130 FORMAT(1X,I4,1X,I3.3,1X,
-  130 FORMAT(1X, I7, 1X, 10(F8.3), F8.1) 
+!  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, 9(F8.3), 9(F8.3)) 
+  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, F8.3)
+
       
        ! JZW: Add nlayr_nw declaration and here
       CALL nwheats_rtdp(CONTROL, SOILPROP,
@@ -2995,6 +3012,14 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
       do L=1,nrlayr   ! nwheats layer is now L
          rlv_nw(L) = rlv_nw(L) * (1.0 - rootsenfr)
       enddo
+      
+      ! VSH
+      if (WaterLoggingTime >= P4AF) then
+         do L = g_nrlayr, nrlayr   
+            rlv_nw(L) = 0.
+         enddo
+      end if
+      
 ! ------- Add on today's growth -----
  
 !**!  call add_real_array (growt, pl_wt, mxpart)
@@ -3012,7 +3037,14 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
 !!**!     pl_wt(L) = pl_wt(L) + trans_wt(L)
 !         plantwt(L) = plantwt(L) + trans_wt(L)
 !      enddo          
-
+      
+      ! VSH
+      if (WaterLoggingTime >= P4AF) then
+         plantwt(root_part) = 
+     &      plantwt(root_part) / grtdep_nw_before_kill * rtdep_nw 
+         WaterLoggingTime = 0
+      End If
+      
       sumcbo(istage) = sumcbo(istage) + carbh
 !----------------------------------------------------------------------
 !*! Begin WHAPS calculation of stem weight for grain number function 
@@ -3229,6 +3261,7 @@ cjh quick fix for maturity stage
 !-----------------------------------------------------------------------
       ELSEIF (DYNAMIC .EQ. OUTPUT) THEN 
        WTNVEG = WTNVEG
+
 !-----------------------------------------------------------------------
 !                         DYNAMIC = SEASEND
 !-----------------------------------------------------------------------
