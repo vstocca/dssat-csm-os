@@ -540,7 +540,7 @@ C=======================================================================
       REAL SATFRAC(NL), FACTOR
       REAL DLAYR(NL), DS(NL), DUL(NL), SAT(NL), SW(NL)
 !      REAL, PARAMETER :: TOL = 0.95 VSH
-      REAL, PARAMETER :: TOL = 0.75
+      REAL, PARAMETER :: TOL = 0.90
       
 !-----------------------------------------------------------------------
       DO L = NLAYR, 1, -1
