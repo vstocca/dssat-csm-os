@@ -539,9 +539,7 @@ C=======================================================================
       REAL  WTDEP             !Depth to Water table (cm)
       REAL SATFRAC(NL), FACTOR
       REAL DLAYR(NL), DS(NL), DUL(NL), SAT(NL), SW(NL)
-!      REAL, PARAMETER :: TOL = 0.95 VSH
-      REAL, PARAMETER :: TOL = 0.90
-      
+      REAL, PARAMETER :: TOL = 0.95
 !-----------------------------------------------------------------------
       DO L = NLAYR, 1, -1
         SATFRAC(L) = (SW(L) - DUL(L)) / (SAT(L) - DUL(L))
