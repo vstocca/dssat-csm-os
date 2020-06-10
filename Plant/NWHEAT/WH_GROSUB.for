@@ -616,6 +616,8 @@ C The statements begining with !*! are refer to APSIM source codes
       ! VSH
 !      Real WT_perched(NLAYR), WT_Thikness(NLAYR)
       Real WT_perched
+      Character(Len = 2)  :: tmp1
+      Character(Len = 40)  :: fmt
       
 !     Added to send messages to WARNING.OUT
       CHARACTER*78 MESSAGE(10)
@@ -1891,7 +1893,7 @@ cnh Senthold
       
       ! VSH WatLog
       OUTWL  = 'WatLog.OUT'       
-      CALL GETLUN('OUTWL',  NOUTWL)                                       
+      CALL GETLUN('OUTWL',  NOUTWL)                                   
       INQUIRE (FILE = OUTWL, EXIST = FEXIST)
       IF (FEXIST) THEN
         OPEN (UNIT = NOUTWL, FILE = OUTWL, STATUS = 'OLD',
@@ -1902,15 +1904,18 @@ cnh Senthold
         WRITE(NOUTWL,'("*SOIL WATER LOG DAILY OUTPUT FILE")')
       ENDIF
       
+      Write(tmp1,'(I2)') NLAYR
+      fmt = '(1X, I7, 1X,'// tmp1//'(F8.3), 2(F8.1))'
+      
 !      WRITE (NOUTWL,130) YEAR,DOY,
-      WRITE (NOUTWL,130) YRDOY,
+      WRITE (NOUTWL,fmt) YRDOY,
 !     &      (ADF(L),L=1,NLAYR)
      &      (fdsw_test(L),L=1,NLAYR), WTDEP, WT_perched
 !      (WT_perched(L),L=1,NLAYR),
 !     &      (WT_Thikness(L),L=1,NLAYR)
 !  130 FORMAT(1X,I4,1X,I3.3,1X,
 !  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, 9(F8.3), 9(F8.3)) 
-  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, F8.3)
+!  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, F8.3)
 
       
        ! JZW: Add nlayr_nw declaration and here
