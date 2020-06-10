@@ -73,8 +73,7 @@ Contains
         Integer, Dimension(NLAYR) :: Sat_Layer 
         Logical :: isSatLayer
         
-!      REAL, PARAMETER :: TOL = 0.95 VSH
-        Real, Parameter :: TOL = 0.90      
+        Real, Parameter :: TOL = 0.95      
         Integer :: L, i, j, not_sat_layr
         
         SATFRAC = FDW (NLAYR, DUL, SAT, SW)
