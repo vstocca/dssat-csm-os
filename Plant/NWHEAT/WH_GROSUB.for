@@ -1844,8 +1844,6 @@ C         Calculate soil water table depth
           
           g_water_table = WT_perched * 10
           
-          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
-     &                                WT_perched]
 !======================================================================
           call nwheats_set_nconc (xstag_nw, istage,              !Input
      &      zstage, VSEN,                                        !Input
