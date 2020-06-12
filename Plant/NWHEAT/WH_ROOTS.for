@@ -359,6 +359,7 @@ C=======================================================================
 
           ! VSH
           WaterLoggingTime = 0
+          Perched_Water_Top_By_Day = [0.]
           
 !       Do this just once in RUNINIT
         IF (DYNAMIC .EQ. RUNINIT) THEN
@@ -434,9 +435,6 @@ C=======================================================================
             ! the top of the water table is above the lower
             ! boundary of this layer.
             ad_time(L) = ad_time(L) + 1
-            
-            ! VSH
-            g_nrlayr = L+1
             Exit
          else
             ad_time(L) = 0
@@ -446,12 +444,35 @@ C=======================================================================
       ! VSH
       If (effective_water_table < rtdep_nw) then
           WaterLoggingTime = WaterLoggingTime + 1
+          
+          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
+     &                                effective_water_table] 
       else
           WaterLoggingTime = 0
+          if (Allocated(Perched_Water_Top_By_Day)) then
+             Deallocate(Perched_Water_Top_By_Day)
+             Perched_Water_Top_By_Day = [0.]
+          end If
       End If
       
-      if (WaterLoggingTime >= P4AF) then
-          kill_depth = effective_water_table
+      if (WaterLoggingTime == int(P4AF)) then   ! comparison int and real
+!          kill_depth = effective_water_table
+          kill_depth = maxval(Perched_Water_Top_By_Day)
+          
+          if (Allocated(Perched_Water_Top_By_Day)) then
+             Deallocate(Perched_Water_Top_By_Day)
+             Perched_Water_Top_By_Day = [0.]
+          end If
+          
+          do L = 1, nrlayr
+             if (kill_depth < layer_bottom(L)) then
+                g_nrlayr = L+1
+                Exit
+             else
+                g_nrlayr = nrlayr + 1  ! check this
+             endif
+          end do
+          
           kill_depth = min(kill_depth, rtdep_nw)
 !          WaterLoggingTime = 0
           grtdep_nw_before_kill = rtdep_nw
@@ -562,7 +583,7 @@ C=======================================================================
             ENDIF
          enddo
          rtdep_nw = kill_depth
- 
+         
          ! BUILD THE MESSAGE TO SEND FOR SOILN TO INCORPORATE
          ! --------------------------------------------------
          !             FRESH ORGANIC MATERIAL
