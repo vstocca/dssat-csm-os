@@ -68,7 +68,7 @@ Contains
         Real, Dimension(NLAYR) :: Layer_Thikness, Layer_Bottom, DUL, SAT, SW
         
         Real :: Perched_Water_Top
-        Real :: FACTOR             !Depth to Water table (cm)
+        Real :: FACTOR             
         Real, Dimension(NLAYR) :: SATFRAC, WTDEP, WT_Thikness 
         Integer, Dimension(NLAYR) :: Sat_Layer 
         Logical :: isSatLayer
@@ -87,10 +87,12 @@ Contains
                 If (L == 1) Then
                    Perched_Water_Top = 0
                 Else
-                   Perched_Water_Top = Layer_Bottom(L-1)
+                   !Perched_Water_Top = Layer_Bottom(L-1)
                    !If (SATFRAC(L-1) > 0) then
                    !   Perched_Water_Top = Perched_Water_Top - Layer_Thikness(L-1) * SATFRAC(L-1)
                    !End If
+                   FACTOR = MIN(MAX(0.0, (SATFRAC(L) - TOL) / (1.0 - TOL)),1.0)
+                   Perched_Water_Top = Layer_Bottom(L-1) - Layer_Thikness(L-1) * SATFRAC(L-1) * FACTOR
                 End If
                 isSatLayer = .TRUE.
                 Exit
