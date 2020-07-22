@@ -686,6 +686,9 @@ C The statements begining with !*! are refer to APSIM source codes
 !----------------------------------------------------------------------
       IF(DYNAMIC.EQ.RUNINIT.OR.DYNAMIC.EQ.SEASINIT) THEN
 
+          ! VSH
+          WatLoggCount = 1
+          
           CALL GETLUN('OUTO', NOUTDO)
           IDETR  = ISWITCH % IDETR
           ISWNIT = ISWITCH % ISWNIT
@@ -3016,8 +3019,13 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
          rlv_nw(L) = rlv_nw(L) * (1.0 - rootsenfr)
       enddo
       
-      ! VSH
-      if (WaterLoggingTime >= P4AF) then
+      ! VSH 
+!      if (WaterLoggingTime >= P4AF) then
+      if (gkill_depth > 0.0) then
+          
+         rlv_nw(g_nrlayr-1) = rlv_nw(g_nrlayr-1) * 
+     &    (gkill_depth - (g_nrlayr-1) * 10.0)/10.0
+          
          do L = g_nrlayr, nrlayr   
             rlv_nw(L) = 0.
          enddo
@@ -3042,10 +3050,11 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
 !      enddo          
       
       ! VSH
-      if (WaterLoggingTime >= P4AF) then
+!      if (WaterLoggingTime >= P4AF) then
+      if (gkill_depth > 0.0) then
          plantwt(root_part) = 
      &      plantwt(root_part) / grtdep_nw_before_kill * rtdep_nw 
-         WaterLoggingTime = 0
+!         WaterLoggingTime = 0
       End If
       
       sumcbo(istage) = sumcbo(istage) + carbh
