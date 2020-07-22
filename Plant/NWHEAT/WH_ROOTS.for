@@ -359,7 +359,8 @@ C=======================================================================
 
           ! VSH
           WaterLoggingTime = 0
-          Perched_Water_Top_By_Day = [0.]
+ !         Perched_Water_Top_By_Day = [0.]
+ !         WatLoggCount = 1
           
 !       Do this just once in RUNINIT
         IF (DYNAMIC .EQ. RUNINIT) THEN
@@ -442,43 +443,76 @@ C=======================================================================
       enddo 
  
       ! VSH
-      If (effective_water_table < rtdep_nw) then
-          WaterLoggingTime = WaterLoggingTime + 1
+!      If (effective_water_table < rtdep_nw) then
+!          WaterLoggingTime = WaterLoggingTime + 1
           
-          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
-     &                                effective_water_table] 
-      else
-          WaterLoggingTime = 0
-          if (Allocated(Perched_Water_Top_By_Day)) then
-             Deallocate(Perched_Water_Top_By_Day)
-             Perched_Water_Top_By_Day = [0.]
-          end If
+!          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
+!     &                                effective_water_table] 
+!      else
+!          WaterLoggingTime = 0
+!          if (Allocated(Perched_Water_Top_By_Day)) then
+!             Deallocate(Perched_Water_Top_By_Day)
+!             Perched_Water_Top_By_Day = [0.]
+!          end If
+!      End If
+      
+      if ((WatLoggCount) <= int(P4AF)+1) Then
+         Perched_Water_Top_Daily(WatLoggCount) = effective_water_table
+         WatLoggCount = WatLoggCount + 1  
+      Else
+         Do L=2, int(P4AF)+1
+            Perched_Water_Top_Daily(L-1) = Perched_Water_Top_Daily(L)
+         End Do
+         Perched_Water_Top_Daily(int(P4AF)+1) = effective_water_table
+!         rtdep_old = rtdep_nw
       End If
       
-      if (WaterLoggingTime == int(P4AF)) then   ! comparison int and real
-!          kill_depth = effective_water_table
-          kill_depth = maxval(Perched_Water_Top_By_Day)
-          
-          if (Allocated(Perched_Water_Top_By_Day)) then
-             Deallocate(Perched_Water_Top_By_Day)
-             Perched_Water_Top_By_Day = [0.]
-          end If
-          
-          do L = 1, nrlayr
-             if (kill_depth < layer_bottom(L)) then
-                g_nrlayr = L+1
-                Exit
-             else
-                g_nrlayr = nrlayr + 1  ! check this
-             endif
-          end do
-          
-          kill_depth = min(kill_depth, rtdep_nw)
-!          WaterLoggingTime = 0
-          grtdep_nw_before_kill = rtdep_nw
-      Else
-          kill_depth = 0.0
-      End If
+      sz = int(P4AF)
+      Perched_Water_Top_Daily1(1:sz) = Perched_Water_Top_Daily(1:sz)
+      if (WatLoggCount > int(P4AF)) Then
+          kill_depth = maxval(Perched_Water_Top_Daily1)
+          If (kill_depth < rtdep_nw) Then
+             kill_depth = kill_depth
+             
+             do L = 1, nrlayr
+                 if (kill_depth < layer_bottom(L)) then
+                    g_nrlayr = L+1
+                    Exit
+                 else
+                    g_nrlayr = nrlayr + 1  ! check this
+                 endif
+             end do
+             grtdep_nw_before_kill = rtdep_nw
+          Else
+             kill_depth = 0.0 
+          End If
+      End if
+      gkill_depth = kill_depth
+      
+!      if (WaterLoggingTime == int(P4AF)) then   ! comparison int and real
+!!          kill_depth = effective_water_table
+!          kill_depth = maxval(Perched_Water_Top_By_Day)
+!          
+!          if (Allocated(Perched_Water_Top_By_Day)) then
+!             Deallocate(Perched_Water_Top_By_Day)
+!             Perched_Water_Top_By_Day = [0.]
+!          end If
+!          
+!          do L = 1, nrlayr
+!             if (kill_depth < layer_bottom(L)) then
+!                g_nrlayr = L+1
+!                Exit
+!             else
+!                g_nrlayr = nrlayr + 1  ! check this
+!             endif
+!          end do
+!          
+!          kill_depth = min(kill_depth, rtdep_nw)
+!!          WaterLoggingTime = 0
+!          grtdep_nw_before_kill = rtdep_nw
+!      Else
+!          kill_depth = 0.0
+!      End If
             
          
       ! FIND THE DEPTH BELOW WHICH ANY ROOTS NEED TO BE KILLED
