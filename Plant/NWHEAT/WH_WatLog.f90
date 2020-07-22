@@ -8,7 +8,13 @@ Module WatLog
     Real, Dimension(:), Allocatable :: Perched_Water_Top_By_Day
     Integer :: WaterLoggingTime, g_nrlayr
     Real :: grtdep_nw_before_kill
+    Real :: gkill_depth
     
+    Integer, Dimension(10) :: WatLogTime
+    Real, Dimension(4) :: Perched_Water_Top_Daily
+    Real, Dimension(3) :: Perched_Water_Top_Daily1
+    Integer :: WatLoggCount, sz
+    Real :: rtdep_old
 Contains
 !-------------------------------------------------------------------------------   
 !   Calculates Fraction of Drainable Soil Water (0-1) for each soil layer
