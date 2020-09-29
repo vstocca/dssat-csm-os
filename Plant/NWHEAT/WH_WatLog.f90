@@ -15,6 +15,9 @@ Module WatLog
     Real, Dimension(3) :: Perched_Water_Top_Daily1
     Integer :: WatLoggCount, sz
     Real :: rtdep_old
+    Real :: gWT_perched, gWTDEP, WT_perched_new
+    Real :: af2_lai_g, af2_photo_g
+    Real :: gADLAI, gADPHO
 Contains
 !-------------------------------------------------------------------------------   
 !   Calculates Fraction of Drainable Soil Water (0-1) for each soil layer
