@@ -30,14 +30,18 @@ C  Calls:     None
 !----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
 !----------------------------------------------------------------------
       INTEGER NOUTDG
+      Integer NOUTDP ! VSH
       INTEGER DYNAMIC
 
       CHARACTER*1  RNMODE
       CHARACTER*12 OUTG 
+      
+      CHARACTER*12 OUTP  ! VSH
 
       INTEGER TIMDIF, COUNT
       INTEGER DAP, DAS, DOY, I, istage, N_LYR, RSTAGE, RUN
@@ -84,6 +88,9 @@ C  Calls:     None
       IF(DYNAMIC.EQ.RUNINIT) THEN
           OUTG  = 'PlantGro.OUT'
           CALL GETLUN('OUTG',  NOUTDG)
+          
+          OUTP  = 'Perched.OUT'
+          CALL GETLUN('OUTP',  NOUTDP)
 
 !**********************************************************************
 !     Seasonal initialization - run once per season
@@ -103,7 +110,21 @@ C  Calls:     None
               WRITE(NOUTDG,'("*GROWTH ASPECTS OUTPUT FILE")')
             FIRST = .TRUE.  
           ENDIF
-
+          
+          
+          ! VSH
+          INQUIRE (FILE = OUTP, EXIST = FEXIST)
+          IF (FEXIST) THEN
+            OPEN (UNIT=NOUTDP, FILE=OUTP, STATUS='OLD',
+     &        IOSTAT=ERRNUM, POSITION='APPEND')
+            FIRST = .FALSE.  
+          ELSE
+            OPEN (UNIT=NOUTDP, FILE=OUTP, STATUS='NEW',
+     &        IOSTAT = ERRNUM)
+ !             WRITE(NOUTDP,'("*GROWTH ASPECTS OUTPUT FILE")')
+            FIRST = .TRUE.  
+          ENDIF
+          
           !---------------------------------------------------------
           ! Generate variable heading for GROWTH.OUT
           !---------------------------------------------------------
@@ -125,6 +146,10 @@ C  Calls:     None
      &   '   KSTD   LN%D   TPSM   HIPD   PWDD   PWTD',
      &   '     SLAD   CHTD   CWID   RDPD') 
 
+          ! VSH
+          WRITE (NOUTDP,202)
+202       FORMAT('  DAP   RDPD   PRWT   KDEP') 
+          
           DO L = 1, N_LYR
             IF (L < 10) THEN
               WRITE (NOUTDG,'("    ",A2,I1,A1)',ADVANCE='NO') "RL",L,"D"
@@ -232,8 +257,7 @@ C  Calls:     None
      &        PCNL,SHELPC, HIP, NINT(PODWTD*10.),  
      &      !               PWTD      SLAD  CHTD  CWID    RDPD
      &        NINT((PODWTD+PODWT)*10.),SLA,CANHT,CANWH, (rtdep_nw/1000.)
-
-           !        @YEAR   DOY    DAS DAP    DCCD  GSTD    LAID  
+!                   @YEAR   DOY    DAS DAP    DCCD  GSTD    LAID  
  400        FORMAT (1X,I4,1X,I3.3,2(1X,I5),2X,F6.3,1X,I5,1X,F6.3, 
 !                  LWAD SWAD GWAD RWAD VWAD CWAD G#AD G#AD2 GWGD(real) HIAD(real) SHAD, 
      &        8(1X,I6),1X,F6.1,1X,F6.3, 1X, I6,
@@ -246,14 +270,27 @@ C  Calls:     None
             WRITE(NOUTDG,402,ADVANCE='NO')(RLV(I),I=1,N_LYR)
  402          FORMAT (10F8.3)
 
-            WRITE(NOUTDG,404)
+            WRITE(NOUTDG,404)  
      &        NINT(WTCO*10.),NINT(WTLO*10.),NINT(WTSO*10.),
      &         NINT(CUMSENSURF), NINT(CUMSENSOIL), DTT, 
      &         sumstgdtt(istage)
- 404        FORMAT (3(1X,I6), 2I8, 1X, F7.3, 1X, F8.3)
- 
-          ENDIF
+404         FORMAT (3(1X,I6), 2I8, 1X, F7.3, 1X, F8.3)
+            ENDIF
 
+           ! VSH
+           if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+              If (gkill_depth > 0) then  
+              WRITE(NOUTDP,500) DAP,(rtdep_nw/10.),gWT_perched, 
+     &           gkill_depth/10.0
+              else
+                WRITE(NOUTDP,500) DAP,(rtdep_nw/10.),gWT_perched
+              End if
+           else 
+              WRITE(NOUTDP,500) DAP, (rtdep_nw/10.) 
+           End If
+
+500         FORMAT (1X,I4, 3F7.2)
+            
 !         Set average stress factors since last printout back to zero
           SWF_AV = 0.0
           TUR_AV = 0.0
@@ -273,7 +310,8 @@ C-------------------------------------------------------------------
       ELSEIF (DYNAMIC .EQ. SEASEND) THEN
         !Close daily output files.
         CLOSE (NOUTDG)
-
+      
+        CLOSE (NOUTDP) ! VSH
         ENDIF
 
 !***********************************************************************
