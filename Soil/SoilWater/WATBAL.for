@@ -58,6 +58,7 @@ C=======================================================================
       USE ModuleDefs     
       USE ModuleData
       USE FloodModule
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
 !-----------------------------------------------------------------------
@@ -120,6 +121,7 @@ C=======================================================================
 !     Weather variables
       REAL RAIN, TMAX
 
+      Real WT_perched ! VSH
 !-----------------------------------------------------------------------
 !     Transfer values from constructed data types into local variables.
       DYNAMIC = CONTROL % DYNAMIC
@@ -149,6 +151,10 @@ C=======================================================================
 !     Run Initialization - Called once per simulation
 !***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
+          
+      ! VSH
+          gWT_perched = DS(NLAYR)
+          gWTDEP = DS(NLAYR)
 !-----------------------------------------------------------------------
 !     Call IPWBAL to read in values from input file
       CALL IPWBAL (CONTROL, DLAYR, LL, NLAYR, SAT,        !Input
@@ -478,7 +484,16 @@ C         Calculate soil water table depth
           CALL WTDEPT(
      &      NLAYR, DLAYR, DS, DUL, SAT, SW,               !Input
      &      WTDEP)                                        !Output
-        ENDIF                   
+        ENDIF  
+
+!       VSH
+        Call WTDEPT2(NLAYR, DLAYR, DS, DUL, SAT, SW,                  
+!     &         WT_perched, WT_Thikness)
+     &   WT_perched)
+         WT_perched_new = WT_perched 
+         
+         gWT_perched = WT_perched_new
+         gWTDEP = WTDEP
       ENDIF                   
 
 !     Keep yesterday's value of DLAYR for updating tomorrow's water
