@@ -805,6 +805,9 @@ C The statements begining with !*! are refer to APSIM source codes
       SLAP2 = SLAP2 * 100.          ! convert to mm2/g
           CLOSE (LUNECO)
 
+          ! VSH
+          gADLAI = ADLAI
+          gADPHO = ADPHO
 !         ************************************************************
 !         ************************************************************
 ! 
@@ -1840,13 +1843,10 @@ C         Calculate soil water table depth
           
           g_water_table = WTDEP *10    ! for APSIM Nwheat model
           
-          ! VSH
-          Call WTDEPT2(NLAYR, DLAYR, DS, DUL, SAT, SW,                  
-!     &         WT_perched, WT_Thikness)
-     &   WT_perched)
-          
-          g_water_table = WT_perched * 10
-          
+!         VSH          
+          g_water_table = WT_perched_new * 10
+          gWT_perched = WT_perched_new
+          gWTDEP = WTDEP
 !======================================================================
           call nwheats_set_nconc (xstag_nw, istage,              !Input
      &      zstage, VSEN,                                        !Input
@@ -1908,6 +1908,8 @@ cnh Senthold
       Write(tmp1,'(I2)') NLAYR
       fmt = '(1X, I7, 1X,'// tmp1//'(F8.3), 2(F8.1))'
       
+      !gWT_perched = WT_perched
+      !gWTDEP = WTDEP
 !      WRITE (NOUTWL,130) YEAR,DOY,
       WRITE (NOUTWL,fmt) YRDOY,
 !     &      (ADF(L),L=1,NLAYR)
@@ -2035,6 +2037,13 @@ c
 !*!      lfipar = radfr*solrad  (solrad same as SRAD)
 
          lai = (pl_la - sen_la) *PLTPOP/sm2smm
+         
+!          VSH stress on LAI
+         if ( (istage >=1) .AND. (istage <= 5) .AND. 
+     &    (NINT(af2_lai_g) /= 1) ) Then
+            lai = lai * af2_lai_g 
+         End If
+         
          XHLAI=LAI  ! XHLAI: Healthy leaf area index used to compute
                     ! transpiration in water balance routine
 
@@ -2045,6 +2054,13 @@ c
 !*!      lfipar = fr_intc_radn * solrad
          lfipar = fr_intc_radn * SRAD
       endif
+
+      ! VSH
+      if ( (istage >=1) .AND. (istage <= 5) .AND.
+     &   (NINT(af2_photo_g) /= 1) ) Then
+             lfipar = lfipar * af2_photo_g
+      End If
+      
 !----------------------------------------------------------------------
 !*! End WHAPS Photosynthesis Rate calculation 
 !*!       (from APSIM NWheat subroutine nwheats_parin) 
@@ -3023,8 +3039,8 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
 !      if (WaterLoggingTime >= P4AF) then
       if (gkill_depth > 0.0) then
           
-         rlv_nw(g_nrlayr-1) = rlv_nw(g_nrlayr-1) * 
-     &    (gkill_depth - (g_nrlayr-1) * 10.0)/10.0
+!         rlv_nw(g_nrlayr-1) = rlv_nw(g_nrlayr-1) * 
+!     &    (gkill_depth - (g_nrlayr-2) * 100.0)/10.0
           
          do L = g_nrlayr, nrlayr   
             rlv_nw(L) = 0.
