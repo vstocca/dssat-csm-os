@@ -228,7 +228,8 @@ C=======================================================================
  
          af2 = max(af1,afs)
  
-         if (af2 .lt. ADLAI) then
+! VSH         if (af2 .lt. ADLAI) then
+         if (af2 .lt. gADLAI) then
             af2_lai = min(af2,1.0)
          else
             af2_lai = 1.0
@@ -240,7 +241,8 @@ C=======================================================================
             af2_tiller = 1.0
          endif
  
-         if (af2 .lt. ADPHO) then
+! VSH         if (af2 .lt. ADPHO) then
+         if (af2 .lt. gADPHO) then
             af2_photo = min(af2,1.0)
          else
             af2_photo = 1.0
@@ -253,6 +255,9 @@ C=======================================================================
          af2_photo = 1.0
       endif
  
+      ! VSH   
+      af2_lai_g = af2_lai
+      af2_photo_g = af2_photo   
       return
       end subroutine  nwheats_set_adf
 C=======================================================================
