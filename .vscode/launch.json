@@ -7,18 +7,18 @@
             "name": "Debug DSSAT-CSM",
             //Select plataform
             "windows": {
-                "cwd": "C:\\DSSAT47\\Maize",                          //<- Set execution working directory
-                "args": ["C", "UFGA8201.MZX", "1"],                   //<- Set program's arguments
+                "cwd": "C:\\DSSAT47\\Wheat",                          //<- Set execution working directory
+                "args": ["C", "ARVA1701.WHX", "1"],                   //<- Set program's arguments
                 "miDebuggerPath": "gdb.exe",                          //<- Set Debugger path    
             },
             "osx": {
-                "cwd": "/DSSAT47/Maize",                             //<- Set execution working directory
-                "args": ["C", "UFGA8201.MZX", "1"],                  //<- Set program's arguments
+                "cwd": "/DSSAT47/Wheat",                             //<- Set execution working directory
+                "args": ["C", "ARVA1701.WHX", "1"],                  //<- Set program's arguments
                 "miDebuggerPath": "/usr/bin/gdb",                    //<- Set Debugger path    
             },
             "linux": {
-                "cwd": "/DSSAT47/Maize",                             //<- Set execution working directory
-                "args": ["C", "UFGA8201.MZX", "1"],                  //<- Set program's arguments
+                "cwd": "/DSSAT47/Wheat",                             //<- Set execution working directory
+                "args": ["C", "ARVA1701.WHX", "1"],                  //<- Set program's arguments
                 "miDebuggerPath": "/usr/bin/gdb",                    //<- Set Debugger path    
             },
             
