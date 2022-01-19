@@ -1950,7 +1950,9 @@
 
           ! IDETO FILES
           ! NB. Renaming of Overview and Evaluate handled by CSM
-          FNAMEOV = 'Overview.'//out
+          ! TF - Updated OVERVIEW.OUT name to avoid issues
+          ! with case sensitive systems (07/27/2021) 
+          FNAMEOV = 'OVERVIEW.'//out
           FNAMEEVAL = 'Evaluate.'//out
           FNAMEMEAS = 'Measured.'//out
           CALL GETLUN (FNAMEEVAL,fnumeval)
@@ -2958,7 +2960,14 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
           ! Additional controls that not handled by CSM
           ! To get name and location of x-file to -> special controls.
           CALL XREADT (FILEIO,TN,RN,SN,ON,CN,'AFILE',filea)
-          FILEX = FILEADIR(1:TVILENT(FILEADIR))//FILEA(1:TVILENT(FILEA))
+
+!     CHP 2021-03-19
+          IF (INDEX(FILEADIR,"-99") > 0) THEN
+            FILEX = FILEA(1:TVILENT(FILEA))
+          ELSE
+            FILEX=FILEADIR(1:TVILENT(FILEADIR))//FILEA(1:TVILENT(FILEA))
+          ENDIF
+
           CALL LTRIM2 (FILEX,filenew)
           FILELEN = TVILENT(FILENEW)
           FILENEW(FILELEN:FILELEN)= 'X'
@@ -9698,7 +9707,8 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
      &             month,dom,plyeardoy,NINT(pltpopp),NINT(rowspc)
                 ENDIF 
                 WRITE (NOUTPN,2252)
- 2252           FORMAT ('@YEAR DOY   DAS   DAP TMEAN  GSTD  NUAD',
+!               2021-02-15 chp Change NUAD to NUAC in header.
+ 2252           FORMAT ('@YEAR DOY   DAS   DAP TMEAN  GSTD  NUAC',
      A           '  TNAD SDNAD  RNAD  CNAD  LNAD  SNAD  HNAD  HIND',
      F           ' RSNAD SNNPD SNN0D SNN1D',
      B           '  RN%D  LN%D  SN%D  HN%D SDN%D  VN%D',
@@ -10566,12 +10576,12 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
               IF (RUN.EQ.1) THEN
                 EVALOUT = 0
                 EVHEADNM = 0
-                EVHEADNMMAX = 7
+                EVHEADNMMAX = 1
               ENDIF
               IF (EXCODE.NE.EXCODEPREV) THEN
                 EVHEADNM = EVHEADNM + 1
                 OPEN (UNIT=FNUMEVAL,FILE=FNAMEEVAL,POSITION='APPEND')
-                IF (EVHEADNM.LT.EVHEADNMMAX.AND.EVHEADNMMAX.GT.1) THEN
+                IF (EVHEADNM.LE.EVHEADNMMAX.AND.EVHEADNMMAX.GE.1) THEN
                   LENENAME = TVILENT(ENAME)
                   WRITE (FNUMEVAL,*) ' '
                   WRITE (FNUMEVAL,993) 

@@ -1,4 +1,4 @@
-*MAIZE CULTIVAR COEFFICIENTS: MZCER047 MODEL
+*MAIZE CULTIVAR COEFFICIENTS: MZCER048 MODEL
 !
 !The P1 values for the varieties used in experiments IBWA8301 and
 !UFGA8201 were recalibrated to obtain a better fit for version 3
@@ -42,8 +42,15 @@
 ! LH          Holden (Monsanto)
 ! C/LOL       Land of Lakes
 !
+!             P/G/N:Phenology/Growth/Not used for calbration
+!
 @VAR#  VRNAME.......... EXPNO   ECO#    P1    P2    P5    G2    G3 PHINT
-!                                        1     2     3     4     5     6
+!Coeffient #                             1     2     3     4     5     6
+!Calibration                             P     P     P     G     G     N
+
+999991 MINIMA               . DFAULT   5.0 0.000 580.0 248.0  5.00 38.00
+999992 MAXIMA               . DFAULT 450.0 2.000 999.0 990.0 16.50 75.00
+
 PC0001 2500-2600 GDD        . IB0001 160.0 0.750 780.0 750.0  8.50 49.00
 PC0002 2600-2650 GDD        . IB0001 185.0 0.750 850.0 800.0  8.50 49.00
 PC0003 2650-2700 GDD        . IB0001 212.0 0.750 850.0 800.0  8.50 49.00
@@ -54,7 +61,6 @@ PC0005 2750-2800 GDD        . IB0001 260.0 0.750 850.0 800.0  8.50 49.00
 990002 MEDIUM SEASON        . IB0001 200.0 0.300 800.0 700.0  8.50 38.90
 990003 SHORT SEASON         . IB0001 110.0 0.300 680.0 820.4  6.60 38.90
 990004 V.SHORT SEASON       . IB0001   5.0 0.300 680.0 820.4  6.60 38.90
-!
 IB0001 CORNL281             . IB0001 110.0 0.300 685.0 907.9  6.60 38.90
 IB0002 CP170                . IB0001 120.0 0.000 685.0 907.9 10.00 38.90
 IB0003 LG11                 . IB0001 125.0 0.000 685.0 907.9 10.00 38.90
@@ -136,11 +142,10 @@ IB0099 AGETI76              . IB0001 325.0 2.000 625.0 580.0  7.30 50.00
 IB0100 PARTAP1              . IB0001 450.0 2.000 580.0 600.0 16.50 50.00
 
 IB1051 AS 740               . IB0001 215.0 0.750 850.0 700.0  5.00 48.00
+IB1052 DK 611               . IB0001 260.0 0.100 800.0 980.0  5.70 48.00    
 IB1053 LH198XLH185          . IB0001 205.0 0.750 850.0 731.0  5.00 48.00
 IB0154 PIO 3192             . IB0001 215.0 0.300 990.0 660.0  8.50 48.00   
 IB0155 DEA                  . IB0001 165.0 0.100 476.0 442.0  5.35 40.00   
-
-IB1052 DK 611               . IB0001 260.0 0.100 800.0 980.0  5.70 48.00    
 
 !Brazil cultivars:
 IB0171 AG9010               . IB0001 196.0 0.500 758.0 830.0  5.10 40.00   
