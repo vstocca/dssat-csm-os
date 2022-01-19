@@ -3131,7 +3131,7 @@ cbak  adjust the green leaf ara of the leaf that is dying
       else
          Tcnpy = vpdf * (TCSlope + TCInt) + Tmax  ! because EO is not availabe (there is no CALL PET in SPAM.for)
       endif
-         weather % TGROAV = Tcnpy !Average daily canopy temperature (°C)
+         weather % TGROAV = Tcnpy !Average daily canopy temperature (ï¿½C)
          slft = ALIN (SENST, SENSF, 4, Tcnpy)
        Weather % VPD_TRANSP = vpd_transp
        Weather % VPDF = vpdf
@@ -3507,7 +3507,7 @@ cjh quick fix for maturity stage
 ! TANC        Nitrogen content in above ground biomass, g N/g dry weight
 ! TAVGD       Average temperature during daylight hours, C
 ! TCNP        Critical nitrogen concentration in tops, g N/g dry weight
-! TEMPM       Mean daily temperature (°C)
+! TEMPM       Mean daily temperature (ï¿½C)
 ! TFAC        Temperature stress factor for grain nitrogen concentration
 ! TI          Fraction of a phyllochron interval which occurred as a fraction of today's daily thermal time
 ! TLNO        Total number of leaves that the plant produces
