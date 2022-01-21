@@ -73,7 +73,7 @@ C=======================================================================
 ! RAIN    Precipitation depth for current day (mm)
 ! SNOMLT  Daily Snowmelt (mm/d)
 ! SNOW    Snow accumulation (mm)
-! TMAX    Maximum daily temperature (°C)
+! TMAX    Maximum daily temperature (ï¿½C)
 ! WATAVL  Water available for infiltration or runoff (rainfall plus 
 !           irrigation) (mm/d)
 !-----------------------------------------------------------------------

@@ -23,6 +23,7 @@ C=======================================================================
 !     VSH
       USE CsvOutput 
       USE Linklist
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
 
@@ -146,11 +147,17 @@ C-----------------------------------------------------------------------
         ENDIF
 
         IF (N_LYR < 10) THEN
-          WRITE (NOUTDW,1121) ("SW",L,"D",L=1,N_LYR)
+!          WRITE (NOUTDW,1121) ("SW",L,"D",L=1,N_LYR)  VSH
+          WRITE (NOUTDW,1121, ADVANCE='NO') ("SW",L,"D",L=1,N_LYR)
  1121     FORMAT(9("    ",A2,I1,A1))
+          WRITE (NOUTDW,1131)  ! VSH
+ 1131     FORMAT('  PRCH')          
         ELSE
-          WRITE (NOUTDW,1122) ("SW",L,"D",L=1,9), "    SW10"
+!          WRITE (NOUTDW,1122) ("SW",L,"D",L=1,9), "    SW10"  VSH
+      WRITE (NOUTDW,1122, ADVANCE='NO') ("SW",L,"D",L=1,9), "    SW10"
  1122     FORMAT(9("    ",A2,I1,A1),A8)
+          WRITE (NOUTDW,1132)
+ 1132     FORMAT('  PRCH') 
         ENDIF
         END IF   ! VSH
         
@@ -168,20 +175,35 @@ C-----------------------------------------------------------------------
         IF (FMOPT == 'A' .OR. FMOPT == ' ') THEN   ! VSH
         IF (INDEX('RSM',MEINF) > 0) THEN   
 !         New print format includes mulch, tiledrain and runoff info
-          WRITE (NOUTDW,1300)YEAR,DOY,DAS, NINT(TSW), 
+!          WRITE (NOUTDW,1300)YEAR,DOY,DAS, NINT(TSW),   VSH
+          WRITE (NOUTDW,1300, ADVANCE='NO')YEAR,DOY,DAS, NINT(TSW),
      &    NINT(PESW*10.),0,0,0,
      &      0, 0,NINT(AVWTD), 
      &      MULCHWAT, 0.0, 0.0, 0.0, 
      &      (SW(L),L=1,N_LYR)
+            if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+               WRITE(NOUTDW,406) gWT_perched/100.0          ! VSH for perched water
+            ELSE
+               WRITE(NOUTDW,406) gWTDEP/100.0 
+            End If
+
  1300     FORMAT(1X,I4,1X,I3.3,3(1X,I5),3(1X,I6),3(1X,I5),
      &      F8.2,2F6.1,F7.2,
      &      10(F8.3))  
 
         ELSE        !match old printout
-          WRITE (NOUTDW,1302)YEAR,DOY,MOD(DAS,100000), NINT(TSW), 
+!          WRITE (NOUTDW,1302)YEAR,DOY,MOD(DAS,100000), NINT(TSW),  VSH
+      WRITE(NOUTDW,1302,ADVANCE='NO')YEAR,DOY,MOD(DAS,100000),NINT(TSW),
      &      NINT(PESW*10),0,0,0,
      &      0, 0,NINT(AVWTD), 
      &      (SW(L),L=1,N_LYR)
+          
+            if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+               WRITE(NOUTDW,406) gWT_perched/100.0          ! VSH for perched water
+            ELSE
+               WRITE(NOUTDW,406) gWTDEP/100.0 
+            End If
+
  1302     FORMAT(1X,I4,1X,I3.3,3(1X,I5),3(1X,I6),3(1X,I5),
      &      10(F8.3))
         ENDIF
@@ -269,17 +291,33 @@ C-----------------------------------------------------------------------
 !         IF (INDEX('RSN',MEINF) <= 0) THEN   
           IF (INDEX('RSM',MEINF) > 0) THEN   
 !           New print format includes mulch, tiledrain and runoff info
-            WRITE (NOUTDW,1300)YEAR,DOY,MOD(DAS,100000), NINT(TSW), 
+!            WRITE (NOUTDW,1300)YEAR,DOY,MOD(DAS,100000), NINT(TSW),  VSH
+      WRITE(NOUTDW,1300,ADVANCE='NO')YEAR,DOY,MOD(DAS,100000),NINT(TSW), 
      &      NINT(PESW*10),NINT(TRUNOF),NINT(TDRAIN),NINT(CRAIN),
      &        NAP, NINT(TOTIR),NINT(AVWTD), 
      &        MULCHWAT, TDFD*10., TDFC*10., RUNOFF, 
      &        (SW(L),L=1,N_LYR)
 
+            if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+               WRITE(NOUTDW,406) gWT_perched/100.0          ! VSH for perched water
+ 406           FORMAT (1X, F5.3)              
+            ELSE
+               WRITE(NOUTDW,406) gWTDEP/100.0 
+            End If
+
           ELSE        !match old printout
-            WRITE (NOUTDW,1302)YEAR,DOY,MOD(DAS,100000), NINT(TSW), 
+!            WRITE (NOUTDW,1302)YEAR,DOY,MOD(DAS,100000), NINT(TSW), VSH
+      WRITE(NOUTDW,1302,ADVANCE='NO')YEAR,DOY,MOD(DAS,100000),NINT(TSW), 
      &        NINT(PESW*10),NINT(TRUNOF),NINT(TDRAIN),NINT(CRAIN),
      &        NAP, NINT(TOTIR),NINT(AVWTD), 
      &        (SW(L),L=1,N_LYR)
+
+            if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+               WRITE(NOUTDW,406) gWT_perched/100.0          ! VSH for perched water
+            ELSE
+               WRITE(NOUTDW,406) gWTDEP/100.0 
+            End If
+            
           ENDIF
           END IF   ! VSH 
 
