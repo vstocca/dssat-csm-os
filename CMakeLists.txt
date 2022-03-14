@@ -504,6 +504,7 @@ set(
         "Plant/NWHEAT/WH_ROOTS.for"
         "Plant/NWHEAT/WH_SW_SUBS.for"
         "Plant/NWHEAT/WH_temp.for"
+        "plant/NWHEAT/WH_Watlog.f90"
         "Plant/OilCrop-Sunflower/SU_CERES.for"
         "Plant/OilCrop-Sunflower/SU_GROSUB.for"
         "Plant/OilCrop-Sunflower/SU_KUPTAK.for"

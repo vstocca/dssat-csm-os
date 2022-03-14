@@ -30,14 +30,18 @@ C  Calls:     None
 !----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
 !----------------------------------------------------------------------
       INTEGER NOUTDG
+      Integer NOUTDP ! VSH
       INTEGER DYNAMIC
 
       CHARACTER*1  RNMODE
       CHARACTER*12 OUTG 
+
+      CHARACTER*12 OUTP  ! VSH
 
       INTEGER TIMDIF, COUNT
       INTEGER DAP, DAS, DOY, I, istage, N_LYR, RSTAGE, RUN
@@ -85,6 +89,9 @@ C  Calls:     None
           OUTG  = 'PlantGro.OUT'
           CALL GETLUN('OUTG',  NOUTDG)
 
+          OUTP  = 'Perched.OUT'
+          CALL GETLUN('OUTP',  NOUTDP)
+
 !**********************************************************************
 !     Seasonal initialization - run once per season
 !**********************************************************************
@@ -104,6 +111,20 @@ C  Calls:     None
             FIRST = .TRUE.  
           ENDIF
 
+
+          ! VSH
+          INQUIRE (FILE = OUTP, EXIST = FEXIST)
+          IF (FEXIST) THEN
+            OPEN (UNIT=NOUTDP, FILE=OUTP, STATUS='OLD',
+     &        IOSTAT=ERRNUM, POSITION='APPEND')
+            FIRST = .FALSE.  
+          ELSE
+            OPEN (UNIT=NOUTDP, FILE=OUTP, STATUS='NEW',
+     &        IOSTAT = ERRNUM)
+ !             WRITE(NOUTDP,'("*GROWTH ASPECTS OUTPUT FILE")')
+            FIRST = .TRUE.  
+          ENDIF
+          
           !---------------------------------------------------------
           ! Generate variable heading for GROWTH.OUT
           !---------------------------------------------------------
@@ -125,6 +146,10 @@ C  Calls:     None
      &   '   KSTD   LN%D   TPSM   HIPD   PWDD   PWTD',
      &   '     SLAD   CHTD   CWID   RDPD') 
 
+          ! VSH
+          WRITE (NOUTDP,202)
+202       FORMAT('  DAP   RDPD   PRWT   KDEP') 
+          
           DO L = 1, N_LYR
             IF (L < 10) THEN
               WRITE (NOUTDG,'("    ",A2,I1,A1)',ADVANCE='NO') "RL",L,"D"
@@ -255,6 +280,20 @@ C  Calls:     None
  
           ENDIF
 
+           ! VSH
+           if ((NINT(gWT_perched) < NINT(gWTDEP))) Then
+              If (gkill_depth > 0) then  
+              WRITE(NOUTDP,500) DAP,(rtdep_nw/10.),gWT_perched, 
+     &           gkill_depth/10.0
+              else
+                WRITE(NOUTDP,500) DAP,(rtdep_nw/10.),gWT_perched
+              End if
+           else 
+              WRITE(NOUTDP,500) DAP, (rtdep_nw/10.) 
+           End If
+
+500         FORMAT (1X,I4, 3F7.2)
+
 !         Set average stress factors since last printout back to zero
           SWF_AV = 0.0
           TUR_AV = 0.0
@@ -275,6 +314,7 @@ C-------------------------------------------------------------------
         !Close daily output files.
         CLOSE (NOUTDG)
 
+        CLOSE (NOUTDP) ! VSH      
         ENDIF
 
 !***********************************************************************

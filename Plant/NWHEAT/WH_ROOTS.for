@@ -20,6 +20,7 @@ C=======================================================================
 !     ------------------------------------------------------------------
       USE ModuleDefs
       USE WH_module    
+      USE WatLog  ! VSH
       IMPLICIT NONE
       SAVE
   
@@ -164,7 +165,9 @@ C=======================================================================
       do L = 1, nlayr_nw
          ! calculate fraction of drainable soil water
 !*!      fdsw = divide(swdep(L)-duldep(L),satdep(L)-duldep(L),0.0)
-         if((satdep(L)-duldep(L)) .GT. 0.0) then
+!        VSH
+!         if((satdep(L)-duldep(L)) .GT. 0.0) then
+         if((swdep(L)-duldep(L)) .GT. 0.0) then
             fdsw = (swdep(L)-duldep(L)) / (satdep(L)-duldep(L))
          else
             fdsw = 0.0
@@ -172,6 +175,9 @@ C=======================================================================
 !*!      fdsw = bound (fdsw,0.0,1.0)
          fdsw = MAX (fdsw, 0.0)
          fdsw = MIN (fdsw, 1.0)
+         
+         ! VSH
+         fdsw_test(L) = fdsw
          ! TABEX(Y,X,Xo,n); linear_interp_real(Xo,X,Y)
          adf(L) = TABEX (p_adf, p_fdsw, fdsw ,3)
 !*!      adf(L) = linear_interp_real(fdsw,p_fdsw,p_adf,num_fdsw)
@@ -224,7 +230,8 @@ C=======================================================================
  
          af2 = max(af1,afs)
  
-         if (af2 .lt. ADLAI) then
+! VSH         if (af2 .lt. ADLAI) then
+         if (af2 .lt. gADLAI) then
             af2_lai = min(af2,1.0)
          else
             af2_lai = 1.0
@@ -236,7 +243,8 @@ C=======================================================================
             af2_tiller = 1.0
          endif
  
-         if (af2 .lt. ADPHO) then
+! VSH         if (af2 .lt. ADPHO) then
+         if (af2 .lt. gADPHO) then
             af2_photo = min(af2,1.0)
          else
             af2_photo = 1.0
@@ -249,6 +257,9 @@ C=======================================================================
          af2_photo = 1.0
       endif
  
+      ! VSH   
+      af2_lai_g = af2_lai
+      af2_photo_g = af2_photo   
       return
       end subroutine  nwheats_set_adf
 C=======================================================================
@@ -270,6 +281,9 @@ C=======================================================================
 !     ------------------------------------------------------------------
       USE ModuleDefs    
       USE WH_module
+
+      ! VSH
+      USE WatLog
       IMPLICIT NONE
       SAVE
   
@@ -351,6 +365,11 @@ C=======================================================================
 ! ---------------------------------------------------------------------
       IF (DYNAMIC.EQ.RUNINIT .OR. DYNAMIC.EQ.SEASINIT) THEN
 
+          ! VSH
+          WaterLoggingTime = 0
+ !         Perched_Water_Top_By_Day = [0.]
+ !         WatLoggCount = 1
+          
 !       Do this just once in RUNINIT
         IF (DYNAMIC .EQ. RUNINIT) THEN
           CALL GETLUN('OUTO', NOUTDO)
@@ -426,29 +445,104 @@ C=======================================================================
             ! the top of the water table is above the lower
             ! boundary of this layer.
             ad_time(L) = ad_time(L) + 1
+            Exit
          else
             ad_time(L) = 0
          endif
       enddo 
- 
+
+      ! VSH
+!      If (effective_water_table < rtdep_nw) then
+!          WaterLoggingTime = WaterLoggingTime + 1
+          
+!          Perched_Water_Top_By_Day = [Perched_Water_Top_By_Day, 
+!     &                                effective_water_table] 
+!      else
+!          WaterLoggingTime = 0
+!          if (Allocated(Perched_Water_Top_By_Day)) then
+!             Deallocate(Perched_Water_Top_By_Day)
+!             Perched_Water_Top_By_Day = [0.]
+!          end If
+!      End If
+      
+      if ((WatLoggCount) <= int(P4AF)+1) Then
+         Perched_Water_Top_Daily(WatLoggCount) = effective_water_table
+         WatLoggCount = WatLoggCount + 1  
+      Else
+         Do L=2, int(P4AF)+1
+            Perched_Water_Top_Daily(L-1) = Perched_Water_Top_Daily(L)
+         End Do
+         Perched_Water_Top_Daily(int(P4AF)+1) = effective_water_table
+!         rtdep_old = rtdep_nw
+      End If
+      
+      sz = int(P4AF)
+      Perched_Water_Top_Daily1(1:sz) = Perched_Water_Top_Daily(1:sz)
+      if (WatLoggCount > int(P4AF)) Then
+          kill_depth = maxval(Perched_Water_Top_Daily1)
+          If (kill_depth < rtdep_nw) Then
+             kill_depth = kill_depth
+             
+             do L = 1, nrlayr
+                 if (kill_depth < layer_bottom(L)) then
+                    g_nrlayr = L+1
+                    Exit
+                 else
+                    g_nrlayr = nrlayr + 1  ! check this
+                 endif
+             end do
+             grtdep_nw_before_kill = rtdep_nw
+          Else
+             kill_depth = 0.0 
+          End If
+      End if
+      gkill_depth = kill_depth
+      
+!      if (WaterLoggingTime == int(P4AF)) then   ! comparison int and real
+!!          kill_depth = effective_water_table
+!          kill_depth = maxval(Perched_Water_Top_By_Day)
+!          
+!          if (Allocated(Perched_Water_Top_By_Day)) then
+!             Deallocate(Perched_Water_Top_By_Day)
+!             Perched_Water_Top_By_Day = [0.]
+!          end If
+!          
+!          do L = 1, nrlayr
+!             if (kill_depth < layer_bottom(L)) then
+!                g_nrlayr = L+1
+!                Exit
+!             else
+!                g_nrlayr = nrlayr + 1  ! check this
+!             endif
+!          end do
+!          
+!          kill_depth = min(kill_depth, rtdep_nw)
+!!          WaterLoggingTime = 0
+!          grtdep_nw_before_kill = rtdep_nw
+!      Else
+!          kill_depth = 0.0
+!      End If
+            
+         
       ! FIND THE DEPTH BELOW WHICH ANY ROOTS NEED TO BE KILLED
       ! ------------------------------------------------------
-      do L = 1, nrlayr
-         if (ad_time(L) .ge. P4AF) then
-            kill_depth = effective_water_table
-            kill_depth = min(kill_depth, rtdep_nw)
-            if (kill_depth.lt.rtdep_nw) then
-               goto 201
-            else
-               kill_depth = 0.0
-            endif
-         else
-            kill_depth = 0.0
-         endif
-      enddo
+      ! VSH   commented below
+  !    do L = 1, nrlayr
+  !       if (ad_time(L) .ge. P4AF) then
+  !          kill_depth = effective_water_table
+  !          kill_depth = min(kill_depth, rtdep_nw)
+  !          if (kill_depth.lt.rtdep_nw) then
+  !             goto 201
+  !          else
+  !             kill_depth = 0.0
+  !          endif
+  !       else
+  !          kill_depth = 0.0
+  !       endif
+  !    enddo
+  !    
+  !201 continue
       
-  201 continue
- 
       ! SEE IF WE NEED TO INCORPORATE ANY ROOT MATERIAL
       ! -----------------------------------------------
       if (kill_depth .gt. 0.0) then
