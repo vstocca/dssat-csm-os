@@ -1277,7 +1277,8 @@ C The statements begining with !*! are refer to APSIM source codes
 ! JIL 08/01/2006 parameters for ear growth 
 !** Read in SPE file?
 
-!*!       af2_lai    = 1.0  !Remove if nwheats_set_adf is implemented
+          af2_lai    = 1.0  ! vstocca: removed entire LAI effects from AD Sheila
+          af2_lai_g  = 1.0  ! vstocca: removed entire LAI effects from AD Sheila
 !*!       af2_tiller = 1.0  !Remove if nwheats_set_adf is implemented
 !          af2_photo  = 1.0  !Remove if nwheats_set_adf is implemented
           ASGDD = 100.0     !Ending of ear growth (gdd)
