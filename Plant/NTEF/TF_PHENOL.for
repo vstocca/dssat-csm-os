@@ -1010,7 +1010,7 @@ cbak  ears that is not included in lai calculation.
 !*!          alternatively, could use TWILEN (DSSAT)
 !*!                  ppfac = 1. -   p1d * (20. - hrlt)**2
             ! nwheats_ppfac = 1. - PPSEN * (20. - DAYL)**2
-            !n Apsim: The parameter “twilight?is set to the angle (degrees) the geometric centre of the sun is relative to the horizon, -6 degrees for APSIM crops being Civil twilight.
+            !n Apsim: The parameter ï¿½twilight?is set to the angle (degrees) the geometric centre of the sun is relative to the horizon, -6 degrees for APSIM crops being Civil twilight.
 !             nwheats_ppfac = 1. - PPSEN * (20. - TWILEN)**2
 ! Swap 20 and TWILEN to go from long to short day response
 !Added if statements to account for TWILEN being less than the critical day length of 11 h
