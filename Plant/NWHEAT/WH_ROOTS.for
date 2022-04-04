@@ -14,7 +14,7 @@ C=======================================================================
      &    dlayr_nw, duldep, g_water_table, istage, nrlayr,       !Input 
      &    p3af, p4af, p5af, p6af, rtdep_nw,                      !Input
      &    satdep, swdep, xstag_nw, p_fdsw, p_adf, p_afs, p_stage, !Input
-     &    nlayr_nw, adf, afs)                                    !Output
+     &    nlayr_nw, adf, afs, afWL)                              !Output
 
 !     ------------------------------------------------------------------
       USE ModuleDefs
@@ -96,6 +96,10 @@ C=======================================================================
       REAL        MNNH4,INGWT,INGNC,FREAR,MNNCR,GPPSS,GPPES,MXGWT
       REAL        MNRTN,NOMOB,RTDP1,RTDP2
       ! JG end for ecotype variables
+
+      !vstocca
+      REAL       fwl, afwl 
+      real p_val(3), p_WL(3)
       
 !     The variable "CONTROL" is of type "ControlType".
       TYPE (ControlType) CONTROL
@@ -159,14 +163,17 @@ C=======================================================================
 !  JG end of ecotype addition
       
       nlayr_nw = count_of_real_vals (dlayr_nw, NL)
- 
       do L = 1, nlayr_nw
          ! calculate fraction of drainable soil water
 !*!      fdsw = divide(swdep(L)-duldep(L),satdep(L)-duldep(L),0.0)
 !        VSH
 !         if((satdep(L)-duldep(L)) .GT. 0.0) then
          if((swdep(L)-duldep(L)) .GT. 0.0) then
-            fdsw = (swdep(L)-duldep(L)) / (satdep(L)-duldep(L))
+            fdsw = (swdep(L)-duldep(L)) / (satdep(L)-duldep(L))  
+            write(333,*)           "L", L,
+     &                      "swdep(L)", swdep(L), 
+     &                     "duldep(L)", duldep(L),
+     &                     "satdep(L)", satdep(L)
          else
             fdsw = 0.0
          endif
@@ -177,7 +184,8 @@ C=======================================================================
          ! VSH
          fdsw_test(L) = fdsw
          ! TABEX(Y,X,Xo,n); linear_interp_real(Xo,X,Y)
-         adf(L) = TABEX (p_adf, p_fdsw, fdsw ,3)
+      
+         adf(L) = TABEX (p_adf, p_fdsw, fdsw ,3)   
 !*!      adf(L) = linear_interp_real(fdsw,p_fdsw,p_adf,num_fdsw)
 !*! Temp solution - FSR   adf(L) = ALIN(fdsw,p_fdsw,p_adf,num_fdsw) 
       enddo
@@ -201,9 +209,22 @@ C=======================================================================
 !*!   af1 = divide (sum_adf,real(nrlayr),0.0)**p5af
       if(nrlayr .GT. 0) then 
          af1 = (sum_adf / real(nrlayr))**p5af
+        
       else
          af1 = 0.0
       endif
+
+! cvstocca
+! evaluate waterlogging stress on phenolgy    
+        p_WL(1)=0.6
+        p_WL(2)=1.
+        p_WL(3)=1.
+        p_val(1)=0
+        p_val(2)=0.2
+        p_val(3)=1
+  
+       FWL=TABEX(p_WL, p_val, af1 ,3)
+       
 
       ! Find time for which af1 < threshold value
       if (af1.lt.p6af) then
@@ -213,21 +234,27 @@ C=======================================================================
       endif
  
       ! Get phenological sensitivity to AD
-      if ((xstag_nw.ge.1).and.(xstag_nw.le.6)) then
+      if ((xstag_nw.ge.1).and.(xstag_nw.le.5)) then
       ! afs is crop sensitivity to aeration deficit, as a funct of phenol (1 = aeration deficit tolerant crop)
       afs = TABEX (p_afs, p_stage, xstag_nw, 2)
 !*!      afs = linear_interp_real (xstag, p_stage, p_afs, num_stage)
 !*! Temp solution - FSR   afs = ALIN (xstage, p_stage, p_afs, num_stage)
+
+!--------------------------------------------------
       else
          afs = 1.0
+! vstocca        fwl = 1.0
       endif
  
       ! If time of AD is > p4af then calculate crop effect AF2 and
       ! related stresses for growth components
       if (af1_time .ge. p4af) then
- 
+
          af2 = max(af1,afs)
- 
+! vstocca: to be checked        
+         AFWL= max(FWL,afs)
+               write(9875,*) istage,FWL,af1,AFS, AFWL
+    
 ! VSH         if (af2 .lt. ADLAI) then
          if (af2 .lt. gADLAI) then
             af2_lai = min(af2,1.0)
@@ -253,6 +280,7 @@ C=======================================================================
          af2_lai = 1.0
          af2_tiller = 1.0
          af2_photo = 1.0
+         afwl= 1.0
       endif
  
       ! VSH   

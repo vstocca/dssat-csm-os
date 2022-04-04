@@ -159,6 +159,7 @@ C The statements begining with !*! are refer to APSIM source codes
       PARAMETER   (smm2sm = 0.000001) ! conversion factor from NWheat.
       real adf(NL)
       real afs 
+      real afWL !vstocca
       REAL af2_lai
       REAL af2_photo
       real af2_tiller
@@ -1278,7 +1279,7 @@ C The statements begining with !*! are refer to APSIM source codes
 
 !*!       af2_lai    = 1.0  !Remove if nwheats_set_adf is implemented
 !*!       af2_tiller = 1.0  !Remove if nwheats_set_adf is implemented
-          af2_photo  = 1.0  !Remove if nwheats_set_adf is implemented
+!          af2_photo  = 1.0  !Remove if nwheats_set_adf is implemented
           ASGDD = 100.0     !Ending of ear growth (gdd)
           BSGDD = 250.0     !Beginning of ear growth (gdd)
 
@@ -1890,7 +1891,8 @@ cnh Senthold
      &    dlayr_nw, duldep, g_water_table, istage, nrlayr,       !Input 
      &    p3af, p4af, p5af, p6af, rtdep_nw,                      !Input
      &    satdep, swdep, xstag_nw, p_fdsw, p_adf, p_afs, p_stage, !Input
-     &    nlayr_nw, adf, afs)                                    !Output
+     &    nlayr_nw, adf, 
+     &     afs, afWL)                                            !Output
       
       ! VSH WatLog
       OUTWL  = 'WatLog.OUT'       
@@ -2282,8 +2284,13 @@ cbak optimum of 18oc for photosynthesis
           ! day by discounting by temperature, water or N stress factors.
 cnh senthold
 cnh      optfr = min (swdef(photo), nfact(1)) * prft
-      optfr = min(swdef(photo_nw), nfact(1), ADPHO, PRFO3) * prft 
-      
+      optfr = min(swdef(photo_nw), nfact(1), ADPHO, PRFO3, afWL) * prft 
+      write(9876,*) "swdef(photo_nw)",swdef(photo_nw),
+     &              "nfact(1)", nfact(1),
+     &              "ADPHO", ADPHO,
+     &              "PRFO3", PRFO3,
+     &              "afWL",afWL
+
         !! threshold aeration deficit (AF2) affecting photosyn
       carbh = ptcarb*optfr
       carbh = MAX(carbh, 0.0)  !*! was: carbh = l_bound (carbh, 0.0)
@@ -3213,7 +3220,7 @@ cbak  adjust the green leaf ara of the leaf that is dying
       else 
          Tcnpy = vpdf * (TCSlope + TCInt) + Tmax  ! because EO is not availabe (there is no CALL PET in SPAM.for)
       endif                
-         weather % TGROAV = Tcnpy !Average daily canopy temperature (°C)
+         weather % TGROAV = Tcnpy !Average daily canopy temperature (ï¿½C)
          slft = ALIN (SENST, SENSF, 4, Tcnpy)
 
        Weather % VPD_TRANSP = vpd_transp
@@ -3604,7 +3611,7 @@ cjh quick fix for maturity stage
 ! TANC        Nitrogen content in above ground biomass, g N/g dry weight
 ! TAVGD       Average temperature during daylight hours, C
 ! TCNP        Critical nitrogen concentration in tops, g N/g dry weight
-! TEMPM       Mean daily temperature (°C)
+! TEMPM       Mean daily temperature (ï¿½C)
 ! TFAC        Temperature stress factor for grain nitrogen concentration
 ! TI          Fraction of a phyllochron interval which occurred as a fraction of today's daily thermal time
 ! TLNO        Total number of leaves that the plant produces

@@ -4,7 +4,7 @@
 # Define the project and the dependencies that it has
 ##########################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.19.5)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    message(FATAL_ERROR "DSSAT in-source builds are not permitted. \nMake a separate folder"
@@ -489,6 +489,7 @@ set(
         "Plant/NWHEAT/WH_ROOTS.for"
         "Plant/NWHEAT/WH_SW_SUBS.for"
         "Plant/NWHEAT/WH_temp.for"
+        "Plant/NWHEAT/WH_watlog.f90"
         "Plant/SUBSTOR-Potato/PT_GROSUB.for"
         "Plant/SUBSTOR-Potato/PT_NFACTO.for"
         "Plant/SUBSTOR-Potato/PT_NUPTAK.for"
