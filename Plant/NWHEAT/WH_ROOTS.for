@@ -283,6 +283,15 @@ C=======================================================================
          afwl= 1.0
       endif
  
+
+      ! vstocca set to 0 all stresses compute in VHS approach
+        
+         af2_lai = 1.0
+         af2_tiller = 1.0
+         !af2_photo = 1.0
+
+      ! vstocca end change
+         
       ! VSH   
       af2_lai_g = af2_lai
       af2_photo_g = af2_photo   
