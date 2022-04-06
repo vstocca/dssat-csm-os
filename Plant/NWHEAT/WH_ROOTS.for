@@ -288,7 +288,7 @@ C=======================================================================
         
          af2_lai = 1.0
          af2_tiller = 1.0
-      !   af2_photo = 1.0
+         af2_photo = 1.0
       write(9875,*) istage,FWL,af1,AFS, AFWL, af2_lai,af2_photo
       ! vstocca end change
          
