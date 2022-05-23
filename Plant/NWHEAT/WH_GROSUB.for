@@ -63,6 +63,7 @@ C The statements begining with !*! are refer to APSIM source codes
       USE ModuleDefs
       USE WH_module
       USE Interface_SenLig_Ceres
+      USE WatLog  ! VSH
       IMPLICIT  NONE
       SAVE
 !----------------------------------------------------------------------
@@ -624,6 +625,12 @@ C The statements begining with !*! are refer to APSIM source codes
       REAL        YIELDB      
       INTEGER     YR, YRDOY    
 
+      ! VSH
+!      Real WT_perched(NLAYR), WT_Thikness(NLAYR)
+      Real WT_perched
+      Character(Len = 2)  :: tmp1
+      Character(Len = 40)  :: fmt
+      
 !     Added to send messages to WARNING.OUT
       CHARACTER*78 MESSAGE(10)
 
@@ -691,6 +698,9 @@ C The statements begining with !*! are refer to APSIM source codes
 !----------------------------------------------------------------------
       IF(DYNAMIC.EQ.RUNINIT.OR.DYNAMIC.EQ.SEASINIT) THEN
 
+          ! VSH
+          WatLoggCount = 1
+       
           CALL GETLUN('OUTO', NOUTDO)
           IDETR  = ISWITCH % IDETR
           ISWNIT = ISWITCH % ISWNIT
@@ -808,6 +818,9 @@ C 60         FORMAT(25X,F5.2,13X,F5.2,7X,F5.2)
       SLAP2 = SLAP2 * 100.          ! convert to mm2/g
           CLOSE (LUNECO)
 
+          ! VSH
+          gADLAI = ADLAI
+          gADPHO = ADPHO
 !         ************************************************************
 !         ************************************************************
 ! 
@@ -1848,6 +1861,10 @@ C         Calculate soil water table depth
           
           g_water_table = WTDEP *10    ! for APSIM Nwheat model
           
+!         VSH          
+          g_water_table = WT_perched_new * 10
+          gWT_perched = WT_perched_new
+          gWTDEP = WTDEP
 !======================================================================
           call nwheats_set_nconc (xstag_nw, istage,              !Input
      &      zstage, VSEN,                                        !Input
@@ -1897,6 +1914,36 @@ cnh Senthold
      &    p3af, p4af, p5af, p6af, rtdep_nw,                      !Input
      &    satdep, swdep, xstag_nw, p_fdsw, p_adf, p_afs, p_stage, !Input
      &    nlayr_nw, adf, afs)                                    !Output
+      
+      ! VSH WatLog
+      OUTWL  = 'WatLog.OUT'       
+      CALL GETLUN('OUTWL',  NOUTWL)                                   
+      INQUIRE (FILE = OUTWL, EXIST = FEXIST)
+      IF (FEXIST) THEN
+        OPEN (UNIT = NOUTWL, FILE = OUTWL, STATUS = 'OLD',
+     &    IOSTAT = ERRNUM, POSITION = 'APPEND')
+      ELSE
+        OPEN (UNIT = NOUTWL, FILE = OUTWL, STATUS = 'NEW',
+     &    IOSTAT = ERRNUM)
+        WRITE(NOUTWL,'("*SOIL WATER LOG DAILY OUTPUT FILE")')
+      ENDIF
+      
+      Write(tmp1,'(I2)') NLAYR
+      fmt = '(1X, I7, 1X,'// tmp1//'(F8.3), 2(F8.1))'
+      
+      !gWT_perched = WT_perched
+      !gWTDEP = WTDEP
+!      WRITE (NOUTWL,130) YEAR,DOY,
+      WRITE (NOUTWL,fmt) YRDOY,
+!     &      (ADF(L),L=1,NLAYR)
+     &      (fdsw_test(L),L=1,NLAYR), WTDEP, WT_perched
+!      (WT_perched(L),L=1,NLAYR),
+!     &      (WT_Thikness(L),L=1,NLAYR)
+!  130 FORMAT(1X,I4,1X,I3.3,1X,
+!  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, 9(F8.3), 9(F8.3)) 
+!  130 FORMAT(1X, I7, 1X, 9(F8.3), F8.1, F8.3)
+
+     
        ! JZW: Add nlayr_nw declaration and here
       CALL nwheats_rtdp(CONTROL, SOILPROP,
      &  ADPHO, dlayr_nw, dtt, duldep, g_water_table, istage,      !Input
@@ -1959,7 +2006,7 @@ cnh added 7-4-94 ???                                                  !
 !*!      else                                                         !
 !*!      endif                                                        !
 !---------From nwheats_crppr-------------------------------------------
-
+ 
       elseif (stgdur(grnfil) .eq. 1
      &        .and. istage .eq. grnfil) then ! start of grain filling
 c Senthold
@@ -1984,7 +2031,7 @@ cnh need to account for this initial (and significant) biomass
 cnh in stem grown BEFORE ear growth.
          plantwt(stem_part) = plantwt(stem_part)-plantwt(grain_part)
          plwtmn(stem_part) = plwtmn(stem_part)-plantwt(grain_part)
-
+ 
 c Senthold
 !*!      if (stemmn_p1.gt.0.0) then
 !*!          plantwtmn(stem) = plantwt(stem) * stemmn_p1
@@ -2013,6 +2060,13 @@ c
 !*!      lfipar = radfr*solrad  (solrad same as SRAD)
 
          lai = (pl_la - sen_la) *PLTPOP/sm2smm
+         
+!          VSH stress on LAI
+         if ( (istage >=1) .AND. (istage <= 5) .AND. 
+     &    (NINT(af2_lai_g) /= 1) ) Then
+            lai = lai * af2_lai_g 
+         End If
+
 !        XHLAI=LAI
       !- WP - Update Leaf Area by Willingthon
          AREALF = LAI * 10000  !cm2/m2
@@ -2023,10 +2077,18 @@ c
                     ! transpiration in water balance routine
          radfr = 1.0 - exp (-nwheats_kvalue * XHLAI)
          lfipar = radfr * SRAD
+ 
       else  ! interception has already been calculated for us
 !*!      lfipar = fr_intc_radn * solrad
          lfipar = fr_intc_radn * SRAD
       endif
+
+      ! VSH
+      if ( (istage >=1) .AND. (istage <= 5) .AND.
+     &   (NINT(af2_photo_g) /= 1) ) Then
+             lfipar = lfipar * af2_photo_g
+      End If
+      
 !----------------------------------------------------------------------
 !*! End WHAPS Photosynthesis Rate calculation 
 !*!       (from APSIM NWheat subroutine nwheats_parin) 
@@ -2268,7 +2330,7 @@ cnh      optfr = min (swdef(photo), nfact(1)) * prft
         !! threshold aeration deficit (AF2) affecting photosyn
       carbh = ptcarb*optfr
       carbh = MAX(carbh, 0.0)  !*! was: carbh = l_bound (carbh, 0.0)
-
+ 
       if (istage .eq. grnfil) then
          carbh = 
      &    carbh * (1. - (1.2 - 0.8*plwtmn(stem_part)/plantwt(stem_part))
@@ -3018,6 +3080,19 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
       do L=1,nrlayr   ! nwheats layer is now L
          rlv_nw(L) = rlv_nw(L) * (1.0 - rootsenfr)
       enddo
+      
+      ! VSH 
+!      if (WaterLoggingTime >= P4AF) then
+      if (gkill_depth > 0.0) then
+          
+!         rlv_nw(g_nrlayr-1) = rlv_nw(g_nrlayr-1) * 
+!     &    (gkill_depth - (g_nrlayr-2) * 100.0)/10.0
+          
+         do L = g_nrlayr, nrlayr   
+            rlv_nw(L) = 0.
+         enddo
+      end if
+      
 ! ------- Add on today's growth -----
  
 !**!  call add_real_array (growt, pl_wt, mxpart)
@@ -3035,7 +3110,15 @@ cnh         dtiln = dtt * 0.005 * (rtsw - 1.)
 !!**!     pl_wt(L) = pl_wt(L) + trans_wt(L)
 !         plantwt(L) = plantwt(L) + trans_wt(L)
 !      enddo          
-
+      
+      ! VSH
+!      if (WaterLoggingTime >= P4AF) then
+      if (gkill_depth > 0.0) then
+         plantwt(root_part) = 
+     &      plantwt(root_part) / grtdep_nw_before_kill * rtdep_nw 
+!         WaterLoggingTime = 0
+      End If
+      
       sumcbo(istage) = sumcbo(istage) + carbh
 !----------------------------------------------------------------------
 !*! Begin WHAPS calculation of stem weight for grain number function 
